@@ -4,6 +4,8 @@ import problem.ProblemSpec;
 import problem.Tire;
 import problem.TirePressure;
 
+import java.util.Objects;
+
 /**
  * An immutable class representing a state in the game changing technology
  * environment, defined by:
@@ -257,6 +259,26 @@ public class State {
     public State copyState() {
         return new State(pos, slip, breakdown, carType, fuel, tirePressure, driver,
                 tireModel);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        State state = (State) o;
+        return pos == state.pos &&
+                slip == state.slip &&
+                breakdown == state.breakdown &&
+                fuel == state.fuel &&
+                Objects.equals(carType, state.carType) &&
+                tirePressure == state.tirePressure &&
+                Objects.equals(driver, state.driver) &&
+                tireModel == state.tireModel;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pos, slip, breakdown, carType, fuel, tirePressure, driver, tireModel);
     }
 
     @Override
