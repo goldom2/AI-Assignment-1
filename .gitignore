@@ -1,0 +1,33 @@
+*.bin
+*.hex
+*.elf
+*.swp
+*~
+*.o
+*.a
+*.out
+.svn
+.depend
+main
+
+bin/
+
+# Eclipse
+.project
+.classpath
+.settings
+.metadata
+.recommenders
+
+# IntelliJ
+.idea
+*.iml
+out/
+
+# Gradle
+build
+.gradle
+
+# Assignment Specific
+*solution*.txt
+javac_out/
