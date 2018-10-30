@@ -19,7 +19,7 @@ public class Main {
                 for(String driver : ps.getDriverOrder()){
                     for(Tire tire : ps.getTireOrder()){
                         for(TirePressure tp : TirePressure.values()){
-                            for(int fuel = 0; fuel < 50; fuel++){
+                            for(int fuel = 0; fuel <= 50; fuel++){
                                 State temp = new State(pos, false, false, car,
                                         fuel, tp, driver, tire);
 
@@ -66,11 +66,9 @@ public class Main {
                             if(i < 10){
 
                                 int reqFuel = Util.getFuelConsumption(currentState, ps);
-                                int resFuel = currentState.getFuel() - reqFuel;
 
-                                projectedState = new State(currentState.getPos() + (i - 4), false, false,
-                                        currentState.getCarType(), resFuel, currentState.getTirePressure(),
-                                        currentState.getDriver(), currentState.getTireModel());
+                                projectedState = currentState.changePosition((i - 4), ps.getN());
+                                projectedState = projectedState.consumeFuel(reqFuel);
 
                                 vNext = currentSet.get(projectedState);
 
@@ -81,15 +79,21 @@ public class Main {
                                 vNext = currentSet.get(currentState);
 
                                 if(i == 11){
-                                    sum += moveProbs[i] * Math.pow(vNext, (double)ps.getSlipRecoveryTime());
+                                    sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
+                                            (double)(ps.getSlipRecoveryTime() - 1));
                                 }else{
-                                    sum += moveProbs[i] * Math.pow(vNext, (double)ps.getSlipRecoveryTime());
+                                    sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
+                                            (double)(ps.getSlipRecoveryTime() - 1));
                                 }
                             }
                         }
                     }
 
-                    res = rSet + ps.getDiscountFactor()*sum;
+                    if(rSet != 100){
+                        System.out.println(sum);
+                    }
+                    res = rSet + ps.getDiscountFactor() * sum;
+
                     max = max > res ? max : res;
 
                     break;
@@ -199,29 +203,32 @@ public class Main {
         Simulator simulator = new Simulator(ps, output);
         State currentState  = simulator.reset();
 
-        long startTime = System.nanoTime();
-        HashMap<State, Double> allStates = genStates(ps);
-
-        System.out.println(allStates.size());
-        long endTime = System.nanoTime();
-
-        System.out.println((endTime - startTime)/1000000);
+        HashMap<State, Double> allStates = genStates(ps);   // that R(s) good shit
 
         HashMap<State, Double> current = (HashMap<State, Double>) allStates.clone();
         HashMap<State, Double> next = new HashMap();
 
-        System.out.println(allStates.keySet());
+        int hardStop = 0;
 
-//        for(Map.Entry<State, Double> entry : current.entrySet()){
-//            startTime = System.nanoTime();
-//            double temp = valueIterate(ps, currentState, current, allStates);
-//            endTime = System.nanoTime();
+        long startTime = System.nanoTime();
+        while(hardStop < 5){    // this should be set till convergence
 
-//            System.out.println((endTime - startTime)/1000000);
+            for(State state : current.keySet()){
+                next.put(state, valueIterate(ps, state, current, allStates));
+            }
 
-//        }
+            current = (HashMap<State, Double>) next.clone();
+            next.clear();
 
+            System.out.println("iteration: " + hardStop);
+            System.out.println("value of current state: " + current.get(currentState));
+            hardStop++;
+        }
 
+        System.out.println(current);
+
+        long endTime = System.nanoTime();
+        System.out.println("time: " + (endTime - startTime)/1000000);
 
 //        State currentState  = simulator.reset();
 //
@@ -256,7 +263,7 @@ public class Main {
 
         ProblemSpec ps;
         try {
-            ps = new ProblemSpec("examples/level_4/input_lvl4.txt");
+            ps = new ProblemSpec("examples/level_1/input_lvl1.txt");
             run(ps, "outputs/test.txt");
 //            System.out.println(ps.toString());
         } catch (IOException e) {
