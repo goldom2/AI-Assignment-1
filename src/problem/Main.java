@@ -2,7 +2,9 @@ package problem;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import simulator.*;
 
@@ -159,44 +161,91 @@ public class Main {
         return nextStates;
     }
 
+    private static HashMap<State, Double> genStates(ProblemSpec ps){
+
+        HashMap<State, Double> allStates = new HashMap<>();
+
+        for(int pos = 1; pos <= ps.getN(); pos++){
+            for(String car : ps.getCarOrder()){
+                for(String driver : ps.getDriverOrder()){
+                    for(Tire tire : ps.getTireOrder()){
+                        for(TirePressure tp : TirePressure.values()){
+                            for(int fuel = 0; fuel < 50; fuel++){
+                                State temp = new State(pos, false, false, car,
+                                        fuel, tp, driver, tire);
+
+                                if(pos == ps.getN()){
+                                    allStates.put(temp, 100.0);
+                                }else{
+                                    allStates.put(temp, 0.0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return allStates;
+
+    }
+
     private static void run(ProblemSpec ps, String output){
 
         Simulator simulator = new Simulator(ps, output);
 
-        State currentState  = simulator.reset();
+        long startTime = System.nanoTime();
+        HashMap<State, Double> allStates = genStates(ps);
 
-        while(!simulator.isGoalState(currentState)){
+        System.out.println(allStates.size());
+        long endTime = System.nanoTime();
 
-            Map<Action, Double> res = getNextStates(ps, currentState);
+        System.out.println((endTime - startTime)/1000000);
+        HashMap<State, Double> current = (HashMap<State, Double>) allStates.clone();
+        HashMap<State, Double> next = new HashMap();
+        for(Map.Entry<State, Double> entry : current.entrySet()){
+//            Double value
+            Util.getMovementScore(ps, entry.getKey());
 
-            double best = -10;
-            Action winner = null;
-
-            for(Map.Entry<Action, Double> entry : res.entrySet()){
-//                System.out.println(entry.getKey().getText());
-//                System.out.println(entry.getValue());
-                if(entry.getValue() > best){
-                    best = entry.getValue();
-                    winner = entry.getKey();
-                }
-            }
-
-//            System.out.println(winner);
-
-            currentState = simulator.step(winner);
-            System.out.println(winner.getText());
-            System.out.println(best);
-
-            System.out.println(currentState);
 
         }
+
+
+
+//        State currentState  = simulator.reset();
+//
+//        while(!simulator.isGoalState(currentState)){
+//
+//            Map<Action, Double> res = getNextStates(ps, currentState);
+//
+//            double best = -10;
+//            Action winner = null;
+//
+//            for(Map.Entry<Action, Double> entry : res.entrySet()){
+////                System.out.println(entry.getKey().getText());
+////                System.out.println(entry.getValue());
+//                if(entry.getValue() > best){
+//                    best = entry.getValue();
+//                    winner = entry.getKey();
+//                }
+//            }
+//
+////            System.out.println(winner);
+//
+//            currentState = simulator.step(winner);
+////            System.out.println(winner.getText());
+////            System.out.println(best);
+////
+////            System.out.println(currentState);
+//
+//        }
     }
 
     public static void main(String[] args) {
 
         ProblemSpec ps;
         try {
-            ps = new ProblemSpec("examples/level_1/input_lvl1.txt");
+            ps = new ProblemSpec("examples/level_4/input_lvl4.txt");
             run(ps, "outputs/test.txt");
 //            System.out.println(ps.toString());
         } catch (IOException e) {

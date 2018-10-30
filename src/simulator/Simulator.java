@@ -525,18 +525,18 @@ public class Simulator {
             }
 
         } catch (IOException e) {
-//            System.out.println("Error with output file");
-//            System.out.println(e.getMessage());
-//            System.out.println("Vomiting output to stdout instead");
-//            for (Step s: stepRecord) {
-//                System.out.print(s.getOutputFormat());
-//            }
-//
-//            if (goalReached) {
-//                System.out.println("Goal reached, you bloody ripper!");
-//            } else {
-//                System.out.println("Computer says no. Max steps reached: max steps = " + ps.getMaxT());
-//            }
+            System.out.println("Error with output file");
+            System.out.println(e.getMessage());
+            System.out.println("Vomiting output to stdout instead");
+            for (Step s: stepRecord) {
+                System.out.print(s.getOutputFormat());
+            }
+
+            if (goalReached) {
+                System.out.println("Goal reached, you bloody ripper!");
+            } else {
+                System.out.println("Computer says no. Max steps reached: max steps = " + ps.getMaxT());
+            }
         }
     }
 }

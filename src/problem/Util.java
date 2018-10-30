@@ -5,8 +5,6 @@ import simulator.*;
 public class Util {
 
     public static boolean checkMoveCondition(ProblemSpec ps, State s){
-        int score = 0;
-
         // if the state is in "slip", "breakdown" or "no fuel" can't move
         if (s.isInSlipCondition()) {
             return false;
