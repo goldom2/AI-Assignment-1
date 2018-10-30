@@ -2,7 +2,7 @@
 <project version="4">
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="Assignment 2" options="--add-exports=jdk.scripting.nashorn/jdk.nashorn.internal.runtime.regexp.joni.exception=ALL-UNNAMED" />
+      <module name="assignment2" options="--add-exports=jdk.scripting.nashorn/jdk.nashorn.internal.runtime.regexp.joni.exception=ALL-UNNAMED" />
     </option>
   </component>
 </project>
