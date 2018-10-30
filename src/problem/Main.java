@@ -14,7 +14,7 @@ public class Main {
      * Iterate through the ActionSpace (a) to find the most optimal (arg max) action to take
      * - movement option 1
      * - change car option CT
-     * - change drvier option DT
+     * - change driver option DT
      * - change tire option NT
      * - change pressure option 3
      * - refuel option !?
