@@ -10,157 +10,6 @@ import simulator.*;
 
 public class Main {
 
-    /**
-     * Iterate through the ActionSpace (a) to find the most optimal (arg max) action to take
-     * - movement option 1
-     * - change car option CT
-     * - change drvier option DT
-     * - change tire option NT
-     * - change pressure option 3
-     * - refuel option !?
-     */
-    private static Map<Action, Double> getNextStates(ProblemSpec ps, State currentState){
-
-        Map<Action, Double> nextStates = new HashMap<>();
-
-        State projectedState;
-
-        Level level = ps.getLevel();
-
-        for(ActionType at : level.getAvailableActions()){
-            switch(at.getActionNo()) {
-                case 1:
-                    /**
-                     * movement option - take the current state score
-                     */
-
-                    Action move = new Action(ActionType.MOVE);
-
-                    if(Util.checkMoveCondition(ps, currentState)) {
-                        nextStates.put(move, Util.getMovementScore(ps, currentState));
-
-                    } else {
-                        nextStates.put(move, -10.0); // might set to be worse
-                    }
-
-                    break;
-                case 2:
-                    /**
-                     * change car option - take the resulting state
-                     * - assumes that it is always possible to change car type without fail
-                     */
-
-                    for(String car : ps.getCarOrder()){
-                        if(!car.equals(currentState.getCarType())){
-                            projectedState = currentState.changeCarType(car);
-
-                            Action cc = new Action(ActionType.CHANGE_CAR, car);
-                            nextStates.put(cc, Util.getMovementScore(ps, projectedState) - 1);
-                        }
-                    }
-
-                    break;
-                case 3:
-                    /**
-                     * change driver option - take the resulting state
-                     * - assumes that it is always possible to change driver type without fail
-                     */
-
-                    for(String driver : ps.getDriverOrder()){
-                        if(!driver.equals(currentState.getDriver())){
-                            projectedState = currentState.changeDriver(driver);
-
-                            Action cd = new Action(ActionType.CHANGE_DRIVER, driver);
-                            nextStates.put(cd, Util.getMovementScore(ps, projectedState) - 1);
-                        }
-                    }
-
-                    break;
-                case 4:
-                    /**
-                     * change tires option - take the resulting state
-                     * - assumes that it is always possible to change tires type without fail
-                     */
-
-                    for(Tire tire : ps.getTireOrder()){
-                        if(!tire.equals(currentState.getTireModel())){
-                            projectedState = currentState.changeTires(tire);
-
-                            Action ct = new Action(ActionType.CHANGE_TIRES, tire);
-                            nextStates.put(ct, Util.getMovementScore(ps, projectedState) - 1);
-                        }
-                    }
-
-                    break;
-                case 5:
-                    /**
-                     * add fuel option - take the resulting state
-                     * - assumes that it is always possible to add x amount of fuel without fail
-                     * - here the system has an infinite number of possibilities
-                     * - in this implementation only fill to amount of fuel
-                     *   required for the current (move) step
-                     */
-
-                    int fuelRequired = Util.getFuelConsumption(currentState, ps);
-                    int currentFuel = currentState.getFuel();
-
-                    Action rf;
-
-                    if(fuelRequired > currentFuel){
-                        int fill = fuelRequired - currentFuel;
-                        int stepsRequired = (int) Math.ceil(fill / 10);
-
-                        projectedState = currentState.addFuel(fill);
-
-                        rf = new Action(ActionType.ADD_FUEL, fill);
-                        nextStates.put(rf, Util.getMovementScore(ps, projectedState) - stepsRequired);
-
-                    }else{
-                        rf = new Action(ActionType.ADD_FUEL, 0);
-                        nextStates.put(rf, -10.0);
-                    }
-
-                    break;
-                case 6:
-                    /**
-                     * change pressure option - take the resulting state
-                     * - assumes that it is always possible to change tires type without fail
-                     */
-
-                    for(TirePressure tp : TirePressure.values()){
-                        if(!tp.equals(currentState.getTirePressure())) {
-                            projectedState = currentState.changeTirePressure(tp);
-
-                            Action cp = new Action(ActionType.CHANGE_PRESSURE, tp);
-                            nextStates.put(cp, Util.getMovementScore(ps, projectedState) - 1);
-                        }
-                    }
-                    break;
-                case 7:
-                    // perform action 2 and action 3 -- plain solution just iterate through both lists
-                    // ...assume lists are relatively small and time complexity won't be heavily impacted
-
-                    for(String car : ps.getCarOrder()){
-                        for(String driver : ps.getDriverOrder()){
-
-                            if(!driver.equals(currentState.getDriver()) &&
-                                    !car.equals(currentState.getCarType())){
-
-                                projectedState = currentState.changeCarAndDriver(car, driver);
-
-                                Action ccd = new Action(ActionType.CHANGE_CAR_AND_DRIVER, car, driver);
-                                nextStates.put(ccd, Util.getMovementScore(ps, projectedState) - 1);
-                            }
-                        }
-                    }
-
-                    break;
-            }
-        }
-
-        return nextStates;
-    }
-
     private static HashMap<State, Double> genStates(ProblemSpec ps){
 
         HashMap<State, Double> allStates = new HashMap<>();
@@ -190,9 +39,165 @@ public class Main {
 
     }
 
+    private static Double valueIterate(ProblemSpec ps, State currentState, HashMap<State, Double> currentSet,
+                                       HashMap<State, Double> allSet){
+
+        double max = 0;
+
+        State projectedState;
+        double vNext;
+        double rSet;
+
+        Level level = ps.getLevel();
+
+        for(ActionType actionType : level.getAvailableActions()){
+            double res = 0;
+
+            switch(actionType) {
+                case MOVE:
+                    double[] moveProbs = Util.getMoveProb(ps, currentState);
+
+                    double sum = 0.0;
+                    rSet = allSet.get(currentState);
+
+                    for (int i = 0; i < moveProbs.length; i++) {
+
+                        if(Util.checkMoveCondition(ps, currentState)) {
+                            if(i < 10){
+
+                                int reqFuel = Util.getFuelConsumption(currentState, ps);
+                                int resFuel = currentState.getFuel() - reqFuel;
+
+                                projectedState = new State(currentState.getPos() + (i - 4), false, false,
+                                        currentState.getCarType(), resFuel, currentState.getTirePressure(),
+                                        currentState.getDriver(), currentState.getTireModel());
+
+                                vNext = currentSet.get(projectedState);
+
+                                sum += moveProbs[i] * vNext;
+
+                            }else{ // slip or breakdown
+
+                                vNext = currentSet.get(currentState);
+
+                                if(i == 11){
+                                    sum += moveProbs[i] * Math.pow(vNext, (double)ps.getSlipRecoveryTime());
+                                }else{
+                                    sum += moveProbs[i] * Math.pow(vNext, (double)ps.getSlipRecoveryTime());
+                                }
+                            }
+                        }
+                    }
+
+                    res = rSet + ps.getDiscountFactor()*sum;
+                    max = max > res ? max : res;
+
+                    break;
+
+                case CHANGE_CAR:
+                    for(String car : ps.getCarOrder()){
+                        if(!car.equals(currentState.getCarType())){
+                            projectedState = currentState.changeCarType(car);
+
+                            vNext = currentSet.get(projectedState);
+                            rSet = allSet.get(currentState);
+
+                            res = rSet + ps.getDiscountFactor()*vNext;
+                            max = max > res ? max : res;
+                        }
+                    }
+
+                    break;
+
+                case CHANGE_DRIVER:
+                    for(String driver : ps.getDriverOrder()){
+                        if(!driver.equals(currentState.getDriver())){
+                            projectedState = currentState.changeDriver(driver);
+
+                            vNext = currentSet.get(projectedState);
+                            rSet = allSet.get(currentState);
+
+                            res = rSet + ps.getDiscountFactor()*vNext;
+                            max = max > res ? max : res;
+                        }
+                    }
+
+                    break;
+                case CHANGE_TIRES:
+
+                    for(Tire tires : ps.getTireOrder()){
+                        if(!tires.equals(currentState.getTireModel())){
+                            projectedState = currentState.changeTires(tires);
+
+                            vNext = currentSet.get(projectedState);
+                            rSet = allSet.get(currentState);
+
+                            res = rSet + ps.getDiscountFactor()*vNext;
+                            max = max > res ? max : res;
+                        }
+                    }
+
+                    break;
+                case ADD_FUEL:
+
+                    projectedState = currentState.addFuel(10); // add fuel where cost is 1 time unit
+
+                    vNext = currentSet.get(projectedState);
+                    rSet = allSet.get(currentState);
+
+                    res = rSet + ps.getDiscountFactor()*vNext;
+                    max = max > res ? max : res;
+
+                    break;
+                case CHANGE_PRESSURE:
+
+                    for(TirePressure tp : TirePressure.values()){
+                        if(!tp.equals(currentState.getTirePressure())){
+                            projectedState = currentState.changeTirePressure(tp);
+
+                            vNext = currentSet.get(projectedState);
+                            rSet = allSet.get(currentState);
+
+                            res = rSet + ps.getDiscountFactor()*vNext;
+                            max = max > res ? max : res;
+                        }
+                    }
+
+                    break;
+                case CHANGE_CAR_AND_DRIVER:
+
+                    for(String car : ps.getCarOrder()){
+                        for(String driver : ps.getDriverOrder()){
+                            if(!car.equals(currentState.getCarType()) &&
+                                !driver.equals(currentState.getDriver())){
+                                projectedState = currentState.changeCarAndDriver(car, driver);
+
+                                vNext = currentSet.get(projectedState);
+                                rSet = allSet.get(currentState);
+
+                                res = rSet + ps.getDiscountFactor()*vNext;
+                                max = max > res ? max : res;
+                            }
+                        }
+                    }
+
+                    break;
+                default:
+
+                    System.out.println("you wrong");
+                    System.exit(9);
+
+                    break;
+            }
+        }
+
+        return max;
+    }
+
     private static void run(ProblemSpec ps, String output){
 
         Simulator simulator = new Simulator(ps, output);
+        State currentState  = simulator.reset();
 
         long startTime = System.nanoTime();
         HashMap<State, Double> allStates = genStates(ps);
@@ -201,14 +206,20 @@ public class Main {
         long endTime = System.nanoTime();
 
         System.out.println((endTime - startTime)/1000000);
+
         HashMap<State, Double> current = (HashMap<State, Double>) allStates.clone();
         HashMap<State, Double> next = new HashMap();
-        for(Map.Entry<State, Double> entry : current.entrySet()){
-//            Double value
-            Util.getMovementScore(ps, entry.getKey());
 
+        System.out.println(allStates.keySet());
 
-        }
+//        for(Map.Entry<State, Double> entry : current.entrySet()){
+//            startTime = System.nanoTime();
+//            double temp = valueIterate(ps, currentState, current, allStates);
+//            endTime = System.nanoTime();
+
+//            System.out.println((endTime - startTime)/1000000);
+
+//        }
 
 
 

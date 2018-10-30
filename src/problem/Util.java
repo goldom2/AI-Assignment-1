@@ -30,9 +30,7 @@ public class Util {
      *
      * @return list of move probabilities
      */
-    public static double getMovementScore(ProblemSpec ps, State s) {
-
-        double wieghtScore = 0;
+    public static double[] getMoveProb(ProblemSpec ps, State s) {
 
         // get parameters of current state
         Terrain terrain = ps.getEnvironmentMap()[s.getPos() - 1];
@@ -76,30 +74,12 @@ public class Util {
             kProbs[k] = kProb;
         }
 
-        double weightScore = 0;
-
-        // Normalize and apply weight
+        // Normalize
         for (int k = 0; k < ProblemSpec.CAR_MOVE_RANGE; k++) {
-
-            // movement (k<10)
-            if(k < 10) {
-                weightScore += (kProbs[k] / kProbsSum) * (k - 4);
-            }
-
-            // slip penalty
-            else if (k == 10) {
-                weightScore += -1 * (kProbs[k] / kProbsSum) * ps.getSlipRecoveryTime();
-            }
-
-            // breakdown penalty
-            else if (k == 11) {
-                weightScore += -1 * (kProbs[k] / kProbsSum) * ps.getRepairTime();
-            }
+            kProbs[k] /= kProbsSum;
         }
 
-        weightScore -= getFuelConsumption(s, ps); // pre sure this should be factored in
-
-        return weightScore;
+        return kProbs;
     }
 
     /**
