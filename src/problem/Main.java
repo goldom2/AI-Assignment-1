@@ -56,7 +56,7 @@ public class Main {
         Level level = ps.getLevel();
 
         for(ActionType actionType : level.getAvailableActions()){
-            double res = 0;
+            double res;
 
             switch(actionType) {
                 case MOVE:
@@ -92,14 +92,14 @@ public class Main {
                                 }
                             }
                         }
-                    }
 
-                    act = new Action(ActionType.MOVE);
-                    res = rSet + ps.getDiscountFactor() * sum;
+                        res = rSet + ps.getDiscountFactor() * sum;
 
-                    if(max <= res){
-                        max = res;
-                        ret = new ScoredAction(act, res);
+                        if(max <= res){
+                            max = res;
+                            act = new Action(ActionType.MOVE);
+                            ret = new ScoredAction(act, res);
+                        }
                     }
 
                     break;
@@ -113,10 +113,10 @@ public class Main {
                             rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            act = new Action(ActionType.MOVE);
 
                             if(max <= res){
                                 max = res;
+                                act = new Action(ActionType.CHANGE_CAR, car);
                                 ret = new ScoredAction(act, res);
                             }
                         }
@@ -133,10 +133,10 @@ public class Main {
                             rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            act = new Action(ActionType.MOVE);
 
                             if(max <= res){
                                 max = res;
+                                act = new Action(ActionType.CHANGE_DRIVER, driver);
                                 ret = new ScoredAction(act, res);
                             }
                         }
@@ -153,10 +153,10 @@ public class Main {
                             rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            act = new Action(ActionType.MOVE);
 
                             if(max <= res){
                                 max = res;
+                                act = new Action(ActionType.CHANGE_TIRES, tires);
                                 ret = new ScoredAction(act, res);
                             }
                         }
@@ -171,10 +171,10 @@ public class Main {
                     rSet = allSet.get(currentState).getScore();
 
                     res = rSet + ps.getDiscountFactor()*vNext;
-                    act = new Action(ActionType.MOVE);
 
                     if(max <= res){
                         max = res;
+                        act = new Action(ActionType.ADD_FUEL, 10);
                         ret = new ScoredAction(act, res);
                     }
 
@@ -189,10 +189,10 @@ public class Main {
                             rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            act = new Action(ActionType.MOVE);
 
                             if(max <= res){
                                 max = res;
+                                act = new Action(ActionType.CHANGE_PRESSURE, tp);
                                 ret = new ScoredAction(act, res);
                             }
                         }
@@ -211,10 +211,10 @@ public class Main {
                                 rSet = allSet.get(currentState).getScore();
 
                                 res = rSet + ps.getDiscountFactor()*vNext;
-                                act = new Action(ActionType.MOVE);
 
                                 if(max <= res){
                                     max = res;
+                                    act = new Action(ActionType.CHANGE_CAR_AND_DRIVER, car, driver);
                                     ret = new ScoredAction(act, res);
                                 }
                             }
@@ -280,7 +280,6 @@ public class Main {
         while(!sim.isGoalState(start) && start != null){
 
             ScoredAction step = current.get(start);
-            System.out.println(step.getAction().getText() + ", " + start.toString());
             start = sim.step(step.getAction());
         }
     }
@@ -352,7 +351,7 @@ public class Main {
 
         ProblemSpec ps;
         try {
-            ps = new ProblemSpec("examples/level_1/input_lvl1.txt");
+            ps = new ProblemSpec("examples/level_3/input_lvl3_high_fuel.txt");
             run(ps, "outputs/test.txt");
 //            System.out.println(ps.toString());
         } catch (IOException e) {
