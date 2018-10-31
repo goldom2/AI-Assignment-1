@@ -64,13 +64,13 @@ public class Main {
 
                     double sum = 0.0;
                     rSet = allSet.get(currentState).getScore();
+                    int reqFuel = Util.getFuelConsumption(currentState, ps);
 
-                    for (int i = 0; i < moveProbs.length; i++) {
+                    if(Util.checkMoveCondition(ps, currentState)) {
 
-                        if(Util.checkMoveCondition(ps, currentState)) {
+                        for (int i = 0; i < moveProbs.length; i++) {
+
                             if(i < 10){
-
-                                int reqFuel = Util.getFuelConsumption(currentState, ps);
 
                                 projectedState = currentState.changePosition((i - 4), ps.getN());
                                 projectedState = projectedState.consumeFuel(reqFuel);
@@ -88,7 +88,7 @@ public class Main {
                                             (double)(ps.getSlipRecoveryTime() - 1));
                                 }else{
                                     sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
-                                            (double)(ps.getSlipRecoveryTime() - 1));
+                                            (double)(ps.getRepairTime() - 1));
                                 }
                             }
                         }
@@ -241,7 +241,7 @@ public class Main {
         HashMap<State, ScoredAction> allStates = genStates(ps);   // that R(s) good shit
 
         HashMap<State, ScoredAction> current = (HashMap<State, ScoredAction>) allStates.clone(); // v(s)
-        HashMap<State, ScoredAction> next = new HashMap();
+        HashMap<State, ScoredAction> next = new HashMap(); // v[t+1](s)
 
         boolean hasConverged = false;
 
@@ -258,7 +258,7 @@ public class Main {
 
                 next.put(state, res);
 
-                if(hasConverged && (Math.abs(v - vdash) > 0.00001)){
+                if(hasConverged && (Math.abs(v - vdash) > 10)){ // Should be smaller, e.g. 0.00001
                     System.out.println(v + " + " + vdash);
                     hasConverged = false;
                 }
@@ -274,9 +274,10 @@ public class Main {
         State start = sim.reset();  // initial state
         System.out.println(current.get(start));
 
-        while(!sim.isGoalState(start)){
+        while(!sim.isGoalState(start) && start != null){
 
             ScoredAction step = current.get(start);
+            System.out.println(step.getAction().getText() + ", " + start.toString());
             start = sim.step(step.getAction());
         }
     }
@@ -285,7 +286,7 @@ public class Main {
 
         ProblemSpec ps;
         try {
-            ps = new ProblemSpec("examples/level_2/input_lvl2.txt");
+            ps = new ProblemSpec("examples/level_1/input_lvl1.txt");
             run(ps, "outputs/test.txt");
 //            System.out.println(ps.toString());
         } catch (IOException e) {
