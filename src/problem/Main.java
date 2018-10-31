@@ -39,10 +39,10 @@ public class Main {
 
     }
 
-    private static Double valueIterate(ProblemSpec ps, State currentState, HashMap<State, Double> currentSet,
+    private static ScoredAction valueIterate(ProblemSpec ps, State currentState, HashMap<State, Double> currentSet,
                                        HashMap<State, Double> allSet){
 
-        double max = 0;
+        ScoredAction ret;
 
         State projectedState;
         double vNext;
@@ -89,12 +89,11 @@ public class Main {
                         }
                     }
 
-                    if(rSet != 100){
-                        System.out.println(sum);
-                    }
                     res = rSet + ps.getDiscountFactor() * sum;
 
-                    max = max > res ? max : res;
+                    if( > res){
+                        //update the key value pair with the new the entry
+                    }
 
                     break;
 
@@ -200,29 +199,34 @@ public class Main {
 
     private static void run(ProblemSpec ps, String output){
 
-        Simulator simulator = new Simulator(ps, output);
-        State currentState  = simulator.reset();
+        Simulator sim = new Simulator(ps, output);
 
         HashMap<State, Double> allStates = genStates(ps);   // that R(s) good shit
 
-        HashMap<State, Double> current = (HashMap<State, Double>) allStates.clone();
+        HashMap<State, Double> current = (HashMap<State, Double>) allStates.clone(); // v(s)
         HashMap<State, Double> next = new HashMap();
 
-        int hardStop = 0;
+        boolean hasConverged = false;
 
         long startTime = System.nanoTime();
-        while(hardStop < 5){    // this should be set till convergence
+        while(!hasConverged){
+
+            hasConverged = true;
 
             for(State state : current.keySet()){
-                next.put(state, valueIterate(ps, state, current, allStates));
+                double v = current.get(state);
+                double vdash = valueIterate(ps, state, current, allStates);
+
+                next.put(state, vdash);
+
+                if(hasConverged && (Math.abs(v - vdash) > 0.00001)){
+                    System.out.println(v + " + " + vdash);
+                    hasConverged = false;
+                }
             }
 
             current = (HashMap<State, Double>) next.clone();
             next.clear();
-
-            System.out.println("iteration: " + hardStop);
-            System.out.println("value of current state: " + current.get(currentState));
-            hardStop++;
         }
 
         System.out.println(current);
@@ -230,33 +234,8 @@ public class Main {
         long endTime = System.nanoTime();
         System.out.println("time: " + (endTime - startTime)/1000000);
 
-//        State currentState  = simulator.reset();
-//
-//        while(!simulator.isGoalState(currentState)){
-//
-//            Map<Action, Double> res = getNextStates(ps, currentState);
-//
-//            double best = -10;
-//            Action winner = null;
-//
-//            for(Map.Entry<Action, Double> entry : res.entrySet()){
-////                System.out.println(entry.getKey().getText());
-////                System.out.println(entry.getValue());
-//                if(entry.getValue() > best){
-//                    best = entry.getValue();
-//                    winner = entry.getKey();
-//                }
-//            }
-//
-////            System.out.println(winner);
-//
-//            currentState = simulator.step(winner);
-////            System.out.println(winner.getText());
-////            System.out.println(best);
-////
-////            System.out.println(currentState);
-//
-//        }
+        State start = sim.reset();  // initial state
+        System.out.println(current.get(start));
     }
 
     public static void main(String[] args) {
