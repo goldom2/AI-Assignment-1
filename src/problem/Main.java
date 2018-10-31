@@ -230,7 +230,10 @@ public class Main {
                     break;
             }
         }
-
+        if(ret == null){
+            System.out.println("you bad");
+            System.exit(69);
+        }
         return ret;
     }
 
@@ -280,6 +283,69 @@ public class Main {
             System.out.println(step.getAction().getText() + ", " + start.toString());
             start = sim.step(step.getAction());
         }
+    }
+
+    public static ActionType MCTS(ProblemSpec ps, State currentState, int currentStep){
+        long startTime = System.nanoTime();
+        long endTime = System.nanoTime();
+        ActionType choice = null;
+        while((endTime - startTime) / 1000000 < 14000){
+            Level level = ps.getLevel();
+
+
+
+            endTime = System.nanoTime();
+        }
+        return choice;
+    }
+
+    public static boolean simulate(ProblemSpec ps, State simState, int currentStep){
+
+        int req;
+        int move;
+
+        while(currentStep <= ps.getMaxT()){
+            req = Util.getFuelConsumption(simState, ps);
+            if(simState.getFuel() < req){
+                simState = simState.addFuel(10);
+                currentStep++;
+            }
+            else{
+                move = sampleMoveDistance(ps, simState);
+                if(move == 6){
+                    currentStep += ps.getSlipRecoveryTime();
+                }
+                else if(move == 7){
+                    currentStep += ps.getRepairTime();
+                }
+                else{
+                    simState = simState.changePosition(move, ps.getN());
+                    currentStep++;
+                }
+            }
+            if(simState.getPos() == ps.getN()){
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+    public static int sampleMoveDistance(ProblemSpec ps, State state) {
+
+        double[] moveProbs = Util.getMoveProb(ps, state);
+
+        double p = Math.random();
+        double pSum = 0;
+        int move = 0;
+        for (int k = 0; k < ProblemSpec.CAR_MOVE_RANGE; k++) {
+            pSum += moveProbs[k];
+            if (p <= pSum) {
+                move = ps.convertIndexIntoMove(k);
+                break;
+            }
+        }
+        return move;
     }
 
     public static void main(String[] args) {
