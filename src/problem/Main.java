@@ -260,15 +260,19 @@ public class Main {
                 double vdash = res.getScore();
 
                 next.put(state, res);
-
-                if(hasConverged && (Math.abs(v - vdash) > 10)){ // Should be smaller, e.g. 0.00001
+                if(hasConverged && (Math.abs(v - vdash) > 10)) { // Should be smaller, e.g. 0.00001
                     System.out.println(v + " + " + vdash);
                     hasConverged = false;
+                }
+                if ((System.nanoTime() - startTime)/1000000 > 119000) {
+                    System.out.println("Time's up!");
+                    hasConverged = true;
+                    break;
                 }
             }
 
             current = (HashMap<State, ScoredAction>) next.clone();
-            next.clear();
+            //next.clear();
         }
 
         long endTime = System.nanoTime();
@@ -349,10 +353,21 @@ public class Main {
 
     public static void main(String[] args) {
 
+        String input = "examples/level_3/input_lvl3_better_cars.txt";
+        String output = "outputs/test.txt";
+
+        if (args.length != 2) {
+            System.out.println("Usage: java inputFileName outputFileName");
+            //System.exit(2);
+        } else {
+            input = args[0];
+            output = args[1];
+        }
+
         ProblemSpec ps;
         try {
-            ps = new ProblemSpec("examples/level_3/input_lvl3_high_fuel.txt");
-            run(ps, "outputs/test.txt");
+            ps = new ProblemSpec(input);
+            run(ps, output);
 //            System.out.println(ps.toString());
         } catch (IOException e) {
             System.out.println("IO Exception occurred");
