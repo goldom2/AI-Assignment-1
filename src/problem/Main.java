@@ -164,8 +164,8 @@ public class Main {
 
                     break;
                 case ADD_FUEL:
-
-                    projectedState = currentState.addFuel(10); // add fuel where cost is 1 time unit
+                    int fuel = Math.min(10, 50 - currentState.getFuel());
+                    projectedState = currentState.addFuel(fuel); // add fuel where cost is 1 time unit
 
                     vNext = currentSet.get(projectedState).getScore();
                     rSet = allSet.get(currentState).getScore();
@@ -174,7 +174,7 @@ public class Main {
 
                     if(max <= res){
                         max = res;
-                        act = new Action(ActionType.ADD_FUEL, 10);
+                        act = new Action(ActionType.ADD_FUEL, fuel);
                         ret = new ScoredAction(act, res);
                     }
 
