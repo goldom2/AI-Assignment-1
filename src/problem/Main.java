@@ -47,6 +47,7 @@ public class Main {
         State projectedState;
         double vNext;
         double rSet;
+        double scaling = 0.9;
 
         Level level = ps.getLevel();
 
@@ -79,10 +80,10 @@ public class Main {
                                 vNext = currentSet.get(currentState);
 
                                 if(i == 11){
-                                    sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
+                                    sum += scaling * moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
                                             (double)(ps.getSlipRecoveryTime() - 1));
                                 }else{
-                                    sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
+                                    sum += scaling * moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
                                             (double)(ps.getSlipRecoveryTime() - 1));
                                 }
                             }
