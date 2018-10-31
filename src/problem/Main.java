@@ -97,7 +97,7 @@ public class Main {
                     act = new Action(ActionType.MOVE);
                     res = rSet + ps.getDiscountFactor() * sum;
 
-                    if(max < res){
+                    if(max <= res){
                         max = res;
                         ret = new ScoredAction(act, res);
                     }
@@ -115,7 +115,7 @@ public class Main {
                             res = rSet + ps.getDiscountFactor()*vNext;
                             act = new Action(ActionType.MOVE);
 
-                            if(max < res){
+                            if(max <= res){
                                 max = res;
                                 ret = new ScoredAction(act, res);
                             }
@@ -135,7 +135,7 @@ public class Main {
                             res = rSet + ps.getDiscountFactor()*vNext;
                             act = new Action(ActionType.MOVE);
 
-                            if(max < res){
+                            if(max <= res){
                                 max = res;
                                 ret = new ScoredAction(act, res);
                             }
@@ -155,7 +155,7 @@ public class Main {
                             res = rSet + ps.getDiscountFactor()*vNext;
                             act = new Action(ActionType.MOVE);
 
-                            if(max < res){
+                            if(max <= res){
                                 max = res;
                                 ret = new ScoredAction(act, res);
                             }
@@ -173,7 +173,7 @@ public class Main {
                     res = rSet + ps.getDiscountFactor()*vNext;
                     act = new Action(ActionType.MOVE);
 
-                    if(max < res){
+                    if(max <= res){
                         max = res;
                         ret = new ScoredAction(act, res);
                     }
@@ -191,7 +191,7 @@ public class Main {
                             res = rSet + ps.getDiscountFactor()*vNext;
                             act = new Action(ActionType.MOVE);
 
-                            if(max < res){
+                            if(max <= res){
                                 max = res;
                                 ret = new ScoredAction(act, res);
                             }
@@ -213,7 +213,7 @@ public class Main {
                                 res = rSet + ps.getDiscountFactor()*vNext;
                                 act = new Action(ActionType.MOVE);
 
-                                if(max < res){
+                                if(max <= res){
                                     max = res;
                                     ret = new ScoredAction(act, res);
                                 }
@@ -273,13 +273,19 @@ public class Main {
 
         State start = sim.reset();  // initial state
         System.out.println(current.get(start));
+
+        while(!sim.isGoalState(start)){
+
+            ScoredAction step = current.get(start);
+            start = sim.step(step.getAction());
+        }
     }
 
     public static void main(String[] args) {
 
         ProblemSpec ps;
         try {
-            ps = new ProblemSpec("examples/level_1/input_lvl1.txt");
+            ps = new ProblemSpec("examples/level_2/input_lvl2.txt");
             run(ps, "outputs/test.txt");
 //            System.out.println(ps.toString());
         } catch (IOException e) {

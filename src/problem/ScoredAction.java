@@ -10,19 +10,16 @@ public class ScoredAction{
         this.score = score;
     }
 
-    public void setScore(double score){
-        this.score = score;
-    }
-
-    public void setAction(Action action){
-        this.action = action;
-    }
-
     public double getScore(){
         return this.score;
     }
 
     public Action getAction(){
         return this.action;
+    }
+
+    @Override
+    public String toString() {
+        return this.action.getText() + " -> " + this.score;
     }
 }
