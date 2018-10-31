@@ -14,6 +14,10 @@ public class ScoredAction{
         this.score = score;
     }
 
+    public void setAction(Action action){
+        this.action = action;
+    }
+
     public double getScore(){
         return this.score;
     }

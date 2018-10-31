@@ -10,9 +10,9 @@ import simulator.*;
 
 public class Main {
 
-    private static HashMap<State, Double> genStates(ProblemSpec ps){
+    private static HashMap<State, ScoredAction> genStates(ProblemSpec ps){
 
-        HashMap<State, Double> allStates = new HashMap<>();
+        HashMap<State, ScoredAction> allStates = new HashMap<>();
 
         for(int pos = 1; pos <= ps.getN(); pos++){
             for(String car : ps.getCarOrder()){
@@ -23,10 +23,12 @@ public class Main {
                                 State temp = new State(pos, false, false, car,
                                         fuel, tp, driver, tire);
 
+                                Action a = new Action(ActionType.MOVE);
+
                                 if(pos == ps.getN()){
-                                    allStates.put(temp, 100.0);
+                                    allStates.put(temp, new ScoredAction(a, 100.0));
                                 }else{
-                                    allStates.put(temp, 0.0);
+                                    allStates.put(temp, new ScoredAction(a, 0.0));
                                 }
                             }
                         }
@@ -39,15 +41,17 @@ public class Main {
 
     }
 
-    private static ScoredAction valueIterate(ProblemSpec ps, State currentState, HashMap<State, Double> currentSet,
-                                       HashMap<State, Double> allSet){
+    private static ScoredAction valueIterate(ProblemSpec ps, State currentState, HashMap<State, ScoredAction> currentSet,
+                                       HashMap<State, ScoredAction> allSet){
 
-        ScoredAction ret;
+        ScoredAction ret = null;
+        Action act;
+
+        double max = 0;
 
         State projectedState;
         double vNext;
         double rSet;
-        double scaling = 0.9;
 
         Level level = ps.getLevel();
 
@@ -59,7 +63,7 @@ public class Main {
                     double[] moveProbs = Util.getMoveProb(ps, currentState);
 
                     double sum = 0.0;
-                    rSet = allSet.get(currentState);
+                    rSet = allSet.get(currentState).getScore();
 
                     for (int i = 0; i < moveProbs.length; i++) {
 
@@ -71,29 +75,31 @@ public class Main {
                                 projectedState = currentState.changePosition((i - 4), ps.getN());
                                 projectedState = projectedState.consumeFuel(reqFuel);
 
-                                vNext = currentSet.get(projectedState);
+                                vNext = currentSet.get(projectedState).getScore();
 
                                 sum += moveProbs[i] * vNext;
 
                             }else{ // slip or breakdown
 
-                                vNext = currentSet.get(currentState);
+                                vNext = currentSet.get(currentState).getScore();
 
                                 if(i == 11){
-                                    sum += scaling * moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
+                                    sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
                                             (double)(ps.getSlipRecoveryTime() - 1));
                                 }else{
-                                    sum += scaling * moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
+                                    sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
                                             (double)(ps.getSlipRecoveryTime() - 1));
                                 }
                             }
                         }
                     }
 
+                    act = new Action(ActionType.MOVE);
                     res = rSet + ps.getDiscountFactor() * sum;
 
-                    if( > res){
-                        //update the key value pair with the new the entry
+                    if(max < res){
+                        max = res;
+                        ret = new ScoredAction(act, res);
                     }
 
                     break;
@@ -103,11 +109,16 @@ public class Main {
                         if(!car.equals(currentState.getCarType())){
                             projectedState = currentState.changeCarType(car);
 
-                            vNext = currentSet.get(projectedState);
-                            rSet = allSet.get(currentState);
+                            vNext = currentSet.get(projectedState).getScore();
+                            rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            max = max > res ? max : res;
+                            act = new Action(ActionType.MOVE);
+
+                            if(max < res){
+                                max = res;
+                                ret = new ScoredAction(act, res);
+                            }
                         }
                     }
 
@@ -118,11 +129,16 @@ public class Main {
                         if(!driver.equals(currentState.getDriver())){
                             projectedState = currentState.changeDriver(driver);
 
-                            vNext = currentSet.get(projectedState);
-                            rSet = allSet.get(currentState);
+                            vNext = currentSet.get(projectedState).getScore();
+                            rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            max = max > res ? max : res;
+                            act = new Action(ActionType.MOVE);
+
+                            if(max < res){
+                                max = res;
+                                ret = new ScoredAction(act, res);
+                            }
                         }
                     }
 
@@ -133,11 +149,16 @@ public class Main {
                         if(!tires.equals(currentState.getTireModel())){
                             projectedState = currentState.changeTires(tires);
 
-                            vNext = currentSet.get(projectedState);
-                            rSet = allSet.get(currentState);
+                            vNext = currentSet.get(projectedState).getScore();
+                            rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            max = max > res ? max : res;
+                            act = new Action(ActionType.MOVE);
+
+                            if(max < res){
+                                max = res;
+                                ret = new ScoredAction(act, res);
+                            }
                         }
                     }
 
@@ -146,11 +167,16 @@ public class Main {
 
                     projectedState = currentState.addFuel(10); // add fuel where cost is 1 time unit
 
-                    vNext = currentSet.get(projectedState);
-                    rSet = allSet.get(currentState);
+                    vNext = currentSet.get(projectedState).getScore();
+                    rSet = allSet.get(currentState).getScore();
 
                     res = rSet + ps.getDiscountFactor()*vNext;
-                    max = max > res ? max : res;
+                    act = new Action(ActionType.MOVE);
+
+                    if(max < res){
+                        max = res;
+                        ret = new ScoredAction(act, res);
+                    }
 
                     break;
                 case CHANGE_PRESSURE:
@@ -159,11 +185,16 @@ public class Main {
                         if(!tp.equals(currentState.getTirePressure())){
                             projectedState = currentState.changeTirePressure(tp);
 
-                            vNext = currentSet.get(projectedState);
-                            rSet = allSet.get(currentState);
+                            vNext = currentSet.get(projectedState).getScore();
+                            rSet = allSet.get(currentState).getScore();
 
                             res = rSet + ps.getDiscountFactor()*vNext;
-                            max = max > res ? max : res;
+                            act = new Action(ActionType.MOVE);
+
+                            if(max < res){
+                                max = res;
+                                ret = new ScoredAction(act, res);
+                            }
                         }
                     }
 
@@ -176,11 +207,16 @@ public class Main {
                                 !driver.equals(currentState.getDriver())){
                                 projectedState = currentState.changeCarAndDriver(car, driver);
 
-                                vNext = currentSet.get(projectedState);
-                                rSet = allSet.get(currentState);
+                                vNext = currentSet.get(projectedState).getScore();
+                                rSet = allSet.get(currentState).getScore();
 
                                 res = rSet + ps.getDiscountFactor()*vNext;
-                                max = max > res ? max : res;
+                                act = new Action(ActionType.MOVE);
+
+                                if(max < res){
+                                    max = res;
+                                    ret = new ScoredAction(act, res);
+                                }
                             }
                         }
                     }
@@ -195,17 +231,17 @@ public class Main {
             }
         }
 
-        return max;
+        return ret;
     }
 
     private static void run(ProblemSpec ps, String output){
 
         Simulator sim = new Simulator(ps, output);
 
-        HashMap<State, Double> allStates = genStates(ps);   // that R(s) good shit
+        HashMap<State, ScoredAction> allStates = genStates(ps);   // that R(s) good shit
 
-        HashMap<State, Double> current = (HashMap<State, Double>) allStates.clone(); // v(s)
-        HashMap<State, Double> next = new HashMap();
+        HashMap<State, ScoredAction> current = (HashMap<State, ScoredAction>) allStates.clone(); // v(s)
+        HashMap<State, ScoredAction> next = new HashMap();
 
         boolean hasConverged = false;
 
@@ -215,10 +251,12 @@ public class Main {
             hasConverged = true;
 
             for(State state : current.keySet()){
-                double v = current.get(state);
-                double vdash = valueIterate(ps, state, current, allStates);
+                ScoredAction res = valueIterate(ps, state, current, allStates);
 
-                next.put(state, vdash);
+                double v = current.get(state).getScore();
+                double vdash = res.getScore();
+
+                next.put(state, res);
 
                 if(hasConverged && (Math.abs(v - vdash) > 0.00001)){
                     System.out.println(v + " + " + vdash);
@@ -226,11 +264,9 @@ public class Main {
                 }
             }
 
-            current = (HashMap<State, Double>) next.clone();
+            current = (HashMap<State, ScoredAction>) next.clone();
             next.clear();
         }
-
-        System.out.println(current);
 
         long endTime = System.nanoTime();
         System.out.println("time: " + (endTime - startTime)/1000000);
