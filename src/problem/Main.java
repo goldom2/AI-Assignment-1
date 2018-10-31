@@ -357,7 +357,7 @@ public class Main {
         String output = "outputs/test.txt";
 
         if (args.length != 2) {
-            System.out.println("Usage: java inputFileName outputFileName");
+            System.out.println("Usage: java ProgramName inputFileName outputFileName");
             //System.exit(2);
         } else {
             input = args[0];
