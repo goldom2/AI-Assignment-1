@@ -101,7 +101,6 @@ public class Main {
                             ret = new ScoredAction(act, res);
                         }
                     }
-
                     break;
 
                 case CHANGE_CAR:
@@ -121,7 +120,6 @@ public class Main {
                             }
                         }
                     }
-
                     break;
 
                 case CHANGE_DRIVER:
@@ -141,10 +139,9 @@ public class Main {
                             }
                         }
                     }
-
                     break;
-                case CHANGE_TIRES:
 
+                case CHANGE_TIRES:
                     for(Tire tires : ps.getTireOrder()){
                         if(!tires.equals(currentState.getTireModel())){
                             projectedState = currentState.changeTires(tires);
@@ -161,8 +158,8 @@ public class Main {
                             }
                         }
                     }
-
                     break;
+
                 case ADD_FUEL:
                     int fuel = Math.min(10, 50 - currentState.getFuel());
                     projectedState = currentState.addFuel(fuel); // add fuel where cost is 1 time unit
@@ -177,10 +174,9 @@ public class Main {
                         act = new Action(ActionType.ADD_FUEL, fuel);
                         ret = new ScoredAction(act, res);
                     }
-
                     break;
-                case CHANGE_PRESSURE:
 
+                case CHANGE_PRESSURE:
                     for(TirePressure tp : TirePressure.values()){
                         if(!tp.equals(currentState.getTirePressure())){
                             projectedState = currentState.changeTirePressure(tp);
@@ -197,36 +193,34 @@ public class Main {
                             }
                         }
                     }
-
                     break;
+
                 case CHANGE_CAR_AND_DRIVER:
-
                     for(String car : ps.getCarOrder()){
-                        for(String driver : ps.getDriverOrder()){
-                            if(!car.equals(currentState.getCarType()) &&
-                                !driver.equals(currentState.getDriver())){
-                                projectedState = currentState.changeCarAndDriver(car, driver);
+                        if (!car.equals(currentState.getCarType())) {
+                            for (String driver : ps.getDriverOrder()) {
+                                if (!driver.equals(currentState.getDriver())) {
+                                    projectedState = currentState.changeCarAndDriver(car, driver);
 
-                                vNext = currentSet.get(projectedState).getScore();
-                                rSet = allSet.get(currentState).getScore();
+                                    vNext = currentSet.get(projectedState).getScore();
+                                    rSet = allSet.get(currentState).getScore();
 
-                                res = rSet + ps.getDiscountFactor()*vNext;
+                                    res = rSet + ps.getDiscountFactor() * vNext;
 
-                                if(max <= res){
-                                    max = res;
-                                    act = new Action(ActionType.CHANGE_CAR_AND_DRIVER, car, driver);
-                                    ret = new ScoredAction(act, res);
+                                    if (max <= res) {
+                                        max = res;
+                                        act = new Action(ActionType.CHANGE_CAR_AND_DRIVER, car, driver);
+                                        ret = new ScoredAction(act, res);
+                                    }
                                 }
                             }
                         }
                     }
-
                     break;
+
                 default:
-
-                    System.out.println("you wrong");
+                    System.out.println("Cannot Run Level 5");
                     System.exit(9);
-
                     break;
             }
         }
@@ -260,7 +254,7 @@ public class Main {
                 double vdash = res.getScore();
 
                 next.put(state, res);
-                if(hasConverged && (Math.abs(v - vdash) > 10)) { // Should be smaller, e.g. 0.00001
+                if(hasConverged && (Math.abs(v - vdash) > 0.0001)) {
                     System.out.println(v + " + " + vdash);
                     hasConverged = false;
                 }
@@ -272,7 +266,6 @@ public class Main {
             }
 
             current = (HashMap<State, ScoredAction>) next.clone();
-            //next.clear();
         }
 
         long endTime = System.nanoTime();
@@ -282,7 +275,6 @@ public class Main {
         System.out.println(current.get(start));
 
         while(!sim.isGoalState(start) && start != null){
-
             ScoredAction step = current.get(start);
             start = sim.step(step.getAction());
         }
