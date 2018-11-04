@@ -20,7 +20,7 @@ public class Main {
                 for(String driver : ps.getDriverOrder()){
                     for(Tire tire : ps.getTireOrder()){
                         for(TirePressure tp : TirePressure.values()){
-                            for(int fuel = 0; fuel <= 50/fuelSteps; fuel += fuelSteps){
+                            for(int fuel = 0; fuel <= 50; fuel += fuelSteps){
                                 State temp = new State(pos, false, false, car,
                                         fuel, tp, driver, tire);
 
@@ -108,7 +108,7 @@ public class Main {
                     for(String car : ps.getCarOrder()){
                         if(!car.equals(currentState.getCarType())){
                             projectedState = currentState.changeCarType(car);
-
+                            
                             vNext = currentSet.get(projectedState).getScore();
                             rSet = allSet.get(currentState).getScore();
 
