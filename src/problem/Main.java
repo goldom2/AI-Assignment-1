@@ -71,10 +71,11 @@ public class Main {
 
                         for (int i = 0; i < moveProbs.length; i++) {
 
+                            projectedState = currentState.consumeFuel((int)Math.ceil(reqFuel / fuelSteps) * fuelSteps);
+
                             if(i < 10){
 
-                                projectedState = currentState.changePosition((i - 4), ps.getN());
-                                projectedState = projectedState.consumeFuel((int)Math.ceil(reqFuel / fuelSteps) * fuelSteps);
+                                projectedState = projectedState.changePosition((i - 4), ps.getN());
 
                                 vNext = currentSet.get(projectedState).getScore();
 
@@ -82,7 +83,7 @@ public class Main {
 
                             }else{ // slip or breakdown
 
-                                vNext = currentSet.get(currentState).getScore();
+                                vNext = currentSet.get(projectedState).getScore();
 
                                 if(i == 11){
                                     sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
@@ -108,7 +109,7 @@ public class Main {
                     for(String car : ps.getCarOrder()){
                         if(!car.equals(currentState.getCarType())){
                             projectedState = currentState.changeCarType(car);
-                            
+
                             vNext = currentSet.get(projectedState).getScore();
                             rSet = allSet.get(currentState).getScore();
 
