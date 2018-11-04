@@ -284,6 +284,8 @@ public class Main {
             ScoredAction step = current.get(start);
             start = sim.step(step.getAction());
         }
+        endTime = System.nanoTime();
+        System.out.println("time: " + (endTime - startTime)/1000000);
     }
 
     public static ActionType MCTS(ProblemSpec ps, State currentState, int currentStep){
