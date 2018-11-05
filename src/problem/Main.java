@@ -10,6 +10,7 @@ import simulator.*;
 
 public class Main {
 
+    public static final int fuelSteps = 5; // Must be a factor of 10 as we only refuel in steps of 10
     private static HashMap<State, ScoredAction> genStates(ProblemSpec ps){
 
         HashMap<State, ScoredAction> allStates = new HashMap<>();
@@ -19,7 +20,7 @@ public class Main {
                 for(String driver : ps.getDriverOrder()){
                     for(Tire tire : ps.getTireOrder()){
                         for(TirePressure tp : TirePressure.values()){
-                            for(int fuel = 0; fuel <= 50; fuel++){
+                            for(int fuel = 0; fuel <= 50; fuel += fuelSteps){
                                 State temp = new State(pos, false, false, car,
                                         fuel, tp, driver, tire);
 
@@ -70,10 +71,11 @@ public class Main {
 
                         for (int i = 0; i < moveProbs.length; i++) {
 
+                            projectedState = currentState.consumeFuel((int)Math.ceil(reqFuel / fuelSteps) * fuelSteps);
+
                             if(i < 10){
 
-                                projectedState = currentState.changePosition((i - 4), ps.getN());
-                                projectedState = projectedState.consumeFuel(reqFuel);
+                                projectedState = projectedState.changePosition((i - 4), ps.getN());
 
                                 vNext = currentSet.get(projectedState).getScore();
 
@@ -81,7 +83,7 @@ public class Main {
 
                             }else{ // slip or breakdown
 
-                                vNext = currentSet.get(currentState).getScore();
+                                vNext = currentSet.get(projectedState).getScore();
 
                                 if(i == 11){
                                     sum += moveProbs[i] * vNext * Math.pow(ps.getDiscountFactor(),
@@ -164,6 +166,8 @@ public class Main {
                     int fuel = Math.min(10, 50 - currentState.getFuel());
                     projectedState = currentState.addFuel(fuel); // add fuel where cost is 1 time unit
 
+
+
                     vNext = currentSet.get(projectedState).getScore();
                     rSet = allSet.get(currentState).getScore();
 
@@ -240,6 +244,8 @@ public class Main {
         HashMap<State, ScoredAction> current = (HashMap<State, ScoredAction>) allStates.clone(); // v(s)
         HashMap<State, ScoredAction> next = new HashMap(); // v[t+1](s)
 
+        System.out.println("Number of states = " + allStates.size());
+
         boolean hasConverged = false;
 
         long startTime = System.nanoTime();
@@ -272,12 +278,14 @@ public class Main {
         System.out.println("time: " + (endTime - startTime)/1000000);
 
         State start = sim.reset();  // initial state
-        System.out.println(current.get(start));
-
+        System.out.println("Value: " + current.get(start).getScore());
         while(!sim.isGoalState(start) && start != null){
+            start = start.consumeFuel(start.getFuel() % fuelSteps);
             ScoredAction step = current.get(start);
             start = sim.step(step.getAction());
         }
+        endTime = System.nanoTime();
+        System.out.println("time: " + (endTime - startTime)/1000000);
     }
 
     public static ActionType MCTS(ProblemSpec ps, State currentState, int currentStep){
