@@ -289,7 +289,7 @@ public class Main {
         }
 
         long endTime = System.nanoTime();
-        System.out.println("Planing time: " + (endTime - startTime)/1000000);
+        System.out.println("Planning time: " + (endTime - startTime)/1000000);
 
         State start = sim.reset();  // initial state
         System.out.println("Value: " + current.get(start).getScore());
