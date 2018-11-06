@@ -2,15 +2,12 @@ package problem;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import simulator.*;
 
 public class Main {
 
-    public static final int fuelSteps = 5; // Must be a factor of 10 as we only refuel in steps of 10
+    public static int fuelSteps = 5; // Must be a factor of 10 as we only refuel in steps of 10
     private static HashMap<State, ScoredAction> genStates(ProblemSpec ps){
 
         HashMap<State, ScoredAction> allStates = new HashMap<>();
@@ -236,8 +233,25 @@ public class Main {
     }
 
     private static void run(ProblemSpec ps, String output){
-
+        long beforeMem = Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
         Simulator sim = new Simulator(ps, output);
+        switch (ps.getLevel().getLevelNumber()) {
+            case 1:
+                fuelSteps = 50;
+                break;
+
+            case 2:
+                fuelSteps = 1;
+                break;
+
+            case 3:
+                fuelSteps = 5;
+                break;
+
+            case 4:
+                fuelSteps = 5;
+                break;
+        }
 
         HashMap<State, ScoredAction> allStates = genStates(ps);   // that R(s) good shit
 
@@ -275,7 +289,7 @@ public class Main {
         }
 
         long endTime = System.nanoTime();
-        System.out.println("time: " + (endTime - startTime)/1000000);
+        System.out.println("Planning time: " + (endTime - startTime)/1000000);
 
         State start = sim.reset();  // initial state
         System.out.println("Value: " + current.get(start).getScore());
@@ -285,7 +299,10 @@ public class Main {
             start = sim.step(step.getAction());
         }
         endTime = System.nanoTime();
-        System.out.println("time: " + (endTime - startTime)/1000000);
+        System.out.println("Total time: " + (endTime - startTime)/1000000);
+        long afterMem = Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
+        long memUsed = afterMem - beforeMem;
+        System.out.println("Memory used = " + memUsed);
     }
 
     public static ActionType MCTS(ProblemSpec ps, State currentState, int currentStep){
