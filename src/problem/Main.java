@@ -370,7 +370,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String input = "examples/level_3/input_lvl3_pressure_test.txt";
+        String input = "examples/level_4/input_lvl4_better_cars.txt";
         String output = "outputs/test.txt";
 
         if (args.length != 2) {
