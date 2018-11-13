@@ -268,6 +268,10 @@ public class Main {
             hasConverged = true;
 
             for(State state : current.keySet()){
+                if (state.getPos() == ps.getN()) {
+                    next.put(state, new ScoredAction(null, 100));
+                    continue;
+                }
                 ScoredAction res = valueIterate(ps, state, current, allStates);
 
                 double v = current.get(state).getScore();
