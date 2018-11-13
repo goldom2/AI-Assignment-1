@@ -264,6 +264,7 @@ public class Main {
 
         long startTime = System.nanoTime();
         while(!hasConverged){
+            System.out.print(".");
 
             hasConverged = true;
 
@@ -290,6 +291,7 @@ public class Main {
 
             current = (HashMap<CustomState, ScoredAction>) next.clone();
         }
+        System.out.println("Done");
 
         long endTime = System.nanoTime();
         System.out.println("Planning time: " + (endTime - startTime)/1000000);
@@ -299,7 +301,6 @@ public class Main {
             start = start.consumeFuel(start.getFuel() % fuelSteps);
             ScoredAction step = current.get(start);
             start = new CustomState(sim.step(step.getAction()));
-            System.out.println(".");
         }
         endTime = System.nanoTime();
         System.out.println("Total time: " + (endTime - startTime)/1000000);
