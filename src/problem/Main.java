@@ -275,11 +275,9 @@ public class Main {
 
                 next.put(state, res);
                 if(hasConverged && (Math.abs(v - vdash) > 0.0001)) {
-                    System.out.println(v + " + " + vdash);
                     hasConverged = false;
                 }
                 if ((System.nanoTime() - startTime)/1000000 > 119000) {
-                    System.out.println("Time's up!");
                     hasConverged = true;
                     break;
                 }
@@ -292,7 +290,6 @@ public class Main {
         System.out.println("Planning time: " + (endTime - startTime)/1000000);
 
         CustomState start = new CustomState(sim.reset());  // initial state
-        System.out.println("Value: " + current.get(start).getScore());
         while(!sim.isGoalState(start.returnState()) && start != null){
             start = start.consumeFuel(start.getFuel() % fuelSteps);
             ScoredAction step = current.get(start);
@@ -307,12 +304,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String input = "examples/level_4/input_lvl4_demo.txt";
+        String input = "examples/level_2/input_lvl2_demo.txt";
         String output = "outputs/test.txt";
 
         if (args.length != 2) {
             System.out.println("Usage: java ProgramName inputFileName outputFileName");
-//            System.exit(2);
+            System.exit(2);
         } else {
             input = args[0];
             output = args[1];
@@ -322,7 +319,6 @@ public class Main {
         try {
             ps = new ProblemSpec(input);
             run(ps, output);
-//            System.out.println(ps.toString());
         } catch (IOException e) {
             System.out.println("IO Exception occurred");
             System.exit(1);

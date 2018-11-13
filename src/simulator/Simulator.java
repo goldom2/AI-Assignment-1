@@ -477,6 +477,10 @@ public class Simulator {
      * @return the next state
      */
     private State performA8(Action a) {
+        // calculate number of steps used for refueling (minus 1 since we add
+        // 1 in main function
+        int stepsRequired = (int) Math.ceil(a.getFuel() / (float) 10);
+        steps += (stepsRequired - 1);
         return currentState.changeTireFuelAndTirePressure(a.getTireModel(),
                 a.getFuel(), a.getTirePressure());
     }
