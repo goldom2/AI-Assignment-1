@@ -1,10 +1,8 @@
 package problem;
 
-import simulator.*;
-
 public class Util {
 
-    public static boolean checkMoveCondition(ProblemSpec ps, State s){
+    public static boolean checkMoveCondition(ProblemSpec ps, CustomState s){
         // if the state is in "slip", "breakdown" or "no fuel" can't move
         if (s.isInSlipCondition()) {
             return false;
@@ -30,7 +28,7 @@ public class Util {
      *
      * @return list of move probabilities
      */
-    public static double[] getMoveProb(ProblemSpec ps, State s) {
+    public static double[] getMoveProb(ProblemSpec ps, CustomState s) {
 
         // get parameters of current state
         Terrain terrain = ps.getEnvironmentMap()[s.getPos() - 1];
@@ -91,7 +89,7 @@ public class Util {
      *                 tire pressure
      * @return list of move probabilities given current terrain and pressure
      */
-    public static double[] convertSlipProbs(double slipProb, ProblemSpec ps, State s) {
+    public static double[] convertSlipProbs(double slipProb, ProblemSpec ps, CustomState s) {
 
         // Adjust slip probability based on tire pressure
         TirePressure pressure = s.getTirePressure();
@@ -160,7 +158,7 @@ public class Util {
      *
      * @return move fuel consumption for current state
      */
-    public static int getFuelConsumption(State s, ProblemSpec ps) {
+    public static int getFuelConsumption(CustomState s, ProblemSpec ps) {
 
         // get parameters of current state
         Terrain terrain = ps.getEnvironmentMap()[s.getPos() - 1];

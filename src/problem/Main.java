@@ -8,9 +8,9 @@ import simulator.*;
 public class Main {
 
     public static int fuelSteps = 5; // Must be a factor of 10 as we only refuel in steps of 10
-    private static HashMap<State, ScoredAction> genStates(ProblemSpec ps){
+    private static HashMap<CustomState, ScoredAction> genStates(ProblemSpec ps){
 
-        HashMap<State, ScoredAction> allStates = new HashMap<>();
+        HashMap<CustomState, ScoredAction> allStates = new HashMap<>();
 
         for(int pos = 1; pos <= ps.getN(); pos++){
             for(String car : ps.getCarOrder()){
@@ -18,7 +18,7 @@ public class Main {
                     for(Tire tire : ps.getTireOrder()){
                         for(TirePressure tp : TirePressure.values()){
                             for(int fuel = 0; fuel <= 50; fuel += fuelSteps){
-                                State temp = new State(pos, false, false, car,
+                                CustomState temp = new CustomState(pos, false, false, car,
                                         fuel, tp, driver, tire);
 
                                 Action a = new Action(ActionType.MOVE);
@@ -39,15 +39,15 @@ public class Main {
 
     }
 
-    private static ScoredAction valueIterate(ProblemSpec ps, State currentState, HashMap<State, ScoredAction> currentSet,
-                                       HashMap<State, ScoredAction> allSet){
+    private static ScoredAction valueIterate(ProblemSpec ps, CustomState currentState, HashMap<CustomState, ScoredAction> currentSet,
+                                       HashMap<CustomState, ScoredAction> allSet){
 
         ScoredAction ret = null;
         Action act;
 
         double max = 0;
 
-        State projectedState;
+        CustomState projectedState;
         double vNext;
         double rSet;
 
@@ -253,10 +253,10 @@ public class Main {
                 break;
         }
 
-        HashMap<State, ScoredAction> allStates = genStates(ps);   // that R(s) good shit
+        HashMap<CustomState, ScoredAction> allStates = genStates(ps);   // that R(s) good shit
 
-        HashMap<State, ScoredAction> current = (HashMap<State, ScoredAction>) allStates.clone(); // v(s)
-        HashMap<State, ScoredAction> next = new HashMap(); // v[t+1](s)
+        HashMap<CustomState, ScoredAction> current = (HashMap<CustomState, ScoredAction>) allStates.clone(); // v(s)
+        HashMap<CustomState, ScoredAction> next = new HashMap(); // v[t+1](s)
 
         System.out.println("Number of states = " + allStates.size());
 
@@ -267,7 +267,7 @@ public class Main {
 
             hasConverged = true;
 
-            for(State state : current.keySet()){
+            for(CustomState state : current.keySet()){
                 ScoredAction res = valueIterate(ps, state, current, allStates);
 
                 double v = current.get(state).getScore();
@@ -285,18 +285,18 @@ public class Main {
                 }
             }
 
-            current = (HashMap<State, ScoredAction>) next.clone();
+            current = (HashMap<CustomState, ScoredAction>) next.clone();
         }
 
         long endTime = System.nanoTime();
         System.out.println("Planning time: " + (endTime - startTime)/1000000);
 
-        State start = sim.reset();  // initial state
+        CustomState start = new CustomState(sim.reset());  // initial state
         System.out.println("Value: " + current.get(start).getScore());
-        while(!sim.isGoalState(start) && start != null){
+        while(!sim.isGoalState(start.returnState()) && start != null){
             start = start.consumeFuel(start.getFuel() % fuelSteps);
             ScoredAction step = current.get(start);
-            start = sim.step(step.getAction());
+            start = new CustomState(sim.step(step.getAction()));
         }
         endTime = System.nanoTime();
         System.out.println("Total time: " + (endTime - startTime)/1000000);
@@ -305,77 +305,14 @@ public class Main {
         System.out.println("Memory used = " + memUsed);
     }
 
-    public static ActionType MCTS(ProblemSpec ps, State currentState, int currentStep){
-        long startTime = System.nanoTime();
-        long endTime = System.nanoTime();
-        ActionType choice = null;
-        while((endTime - startTime) / 1000000 < 14000){
-            Level level = ps.getLevel();
-
-
-
-            endTime = System.nanoTime();
-        }
-        return choice;
-    }
-
-    public static boolean simulate(ProblemSpec ps, State simState, int currentStep){
-
-        int req;
-        int move;
-
-        while(currentStep <= ps.getMaxT()){
-            req = Util.getFuelConsumption(simState, ps);
-            if(simState.getFuel() < req){
-                simState = simState.addFuel(10);
-                currentStep++;
-            }
-            else{
-                move = sampleMoveDistance(ps, simState);
-                if(move == 6){
-                    currentStep += ps.getSlipRecoveryTime();
-                }
-                else if(move == 7){
-                    currentStep += ps.getRepairTime();
-                }
-                else{
-                    simState = simState.changePosition(move, ps.getN());
-                    currentStep++;
-                }
-            }
-            if(simState.getPos() == ps.getN()){
-                return true;
-            }
-        }
-        return false;
-
-    }
-
-    public static int sampleMoveDistance(ProblemSpec ps, State state) {
-
-        double[] moveProbs = Util.getMoveProb(ps, state);
-
-        double p = Math.random();
-        double pSum = 0;
-        int move = 0;
-        for (int k = 0; k < ProblemSpec.CAR_MOVE_RANGE; k++) {
-            pSum += moveProbs[k];
-            if (p <= pSum) {
-                move = ps.convertIndexIntoMove(k);
-                break;
-            }
-        }
-        return move;
-    }
-
     public static void main(String[] args) {
 
-        String input = "examples/level_4/input_lvl4_better_cars.txt";
+        String input = "examples/level_4/input_lvl4_demo.txt";
         String output = "outputs/test.txt";
 
         if (args.length != 2) {
             System.out.println("Usage: java ProgramName inputFileName outputFileName");
-            //System.exit(2);
+//            System.exit(2);
         } else {
             input = args[0];
             output = args[1];
