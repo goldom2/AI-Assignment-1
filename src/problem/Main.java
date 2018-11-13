@@ -268,6 +268,11 @@ public class Main {
             hasConverged = true;
 
             for(CustomState state : current.keySet()){
+                if (state.getPos() == ps.getN()) {
+                    next.put(state, new ScoredAction(null, 100));
+                    continue;
+                }
+
                 ScoredAction res = valueIterate(ps, state, current, allStates);
 
                 double v = current.get(state).getScore();
@@ -294,6 +299,7 @@ public class Main {
             start = start.consumeFuel(start.getFuel() % fuelSteps);
             ScoredAction step = current.get(start);
             start = new CustomState(sim.step(step.getAction()));
+            System.out.println(".");
         }
         endTime = System.nanoTime();
         System.out.println("Total time: " + (endTime - startTime)/1000000);
